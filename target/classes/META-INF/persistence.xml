@@ -11,6 +11,10 @@
         <class>com.thelibrary.model.Pessoa</class>
         <class>com.thelibrary.model.Usuario</class>
         <class>com.thelibrary.model.Bibliotecario</class>
+        <class>com.thelibrary.model.MaterialBibliografico</class>
+        <class>com.thelibrary.model.Livro</class>
+        <class>com.thelibrary.model.Artigo</class>
+        <class>com.thelibrary.model.Revista</class>
 
         <properties>
             <!-- Database Connection -->
