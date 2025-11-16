@@ -8,22 +8,31 @@
     <persistence-unit name="TheLibraryPU" transaction-type="RESOURCE_LOCAL">
         <provider>org.eclipse.persistence.jpa.PersistenceProvider</provider>
 
+        <!-- Pessoas -->
         <class>com.thelibrary.model.Pessoa</class>
         <class>com.thelibrary.model.Usuario</class>
         <class>com.thelibrary.model.Bibliotecario</class>
+
+        <!-- Materiais -->
         <class>com.thelibrary.model.MaterialBibliografico</class>
         <class>com.thelibrary.model.Livro</class>
         <class>com.thelibrary.model.Artigo</class>
         <class>com.thelibrary.model.Revista</class>
 
+        <!-- ENTIDADES QUE FALTAVAM -->
+        <class>com.thelibrary.model.Emprestimo</class>
+        <class>com.thelibrary.model.ItemEmprestimo</class>
+        <class>com.thelibrary.model.Multa</class>
+
         <properties>
             <!-- Database Connection -->
             <property name="javax.persistence.jdbc.driver" value="com.mysql.cj.jdbc.Driver"/>
-            <property name="javax.persistence.jdbc.url" value="jdbc:mysql://localhost:3306/thelibrary?createDatabaseIfNotExist=true&amp;useSSL=false&amp;serverTimezone=America/Sao_Paulo"/>
+            <property name="javax.persistence.jdbc.url"
+                      value="jdbc:mysql://localhost:3306/thelibrary?createDatabaseIfNotExist=true&amp;useSSL=false&amp;serverTimezone=America/Sao_Paulo"/>
             <property name="javax.persistence.jdbc.user" value="root"/>
             <property name="javax.persistence.jdbc.password" value=""/>
 
-            <!-- EclipseLink Properties -->
+            <!-- EclipseLink -->
             <property name="eclipselink.target-database" value="MySQL"/>
             <property name="eclipselink.ddl-generation" value="create-or-extend-tables"/>
             <property name="eclipselink.logging.level" value="FINE"/>
