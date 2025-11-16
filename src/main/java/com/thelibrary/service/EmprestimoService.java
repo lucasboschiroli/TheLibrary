@@ -11,12 +11,9 @@ public class EmprestimoService {
     // ----------------------------------------------------------------------
     // REGISTRAR EMPRÉSTIMO
     // ----------------------------------------------------------------------
-    public Emprestimo registrarEmprestimo(Long usuarioIdLong, List<Long> materiaisIdsLong) {
+    public Emprestimo registrarEmprestimo(Integer usuarioId, List<Integer> materiaisIds) {
         EntityManager em = JPAUtil.getEntityManager();
         em.getTransaction().begin();
-
-        // Converter Long → Integer
-        Integer usuarioId = usuarioIdLong.intValue();
 
         Usuario usuario = em.find(Usuario.class, usuarioId);
         if (usuario == null)
@@ -30,10 +27,7 @@ public class EmprestimoService {
         cal.add(Calendar.DAY_OF_MONTH, 7);
         emp.setDataPrevistaDevolucao(cal.getTime());
 
-        for (Long idMatLong : materiaisIdsLong) {
-
-            Integer idMat = idMatLong.intValue(); // 🔥 CONVERSÃO AQUI
-
+        for (Integer idMat : materiaisIds) {
             MaterialBibliografico m = em.find(MaterialBibliografico.class, idMat);
             if (m == null)
                 throw new RuntimeException("Material não encontrado: " + idMat);
@@ -55,10 +49,8 @@ public class EmprestimoService {
     // ----------------------------------------------------------------------
     public List<Emprestimo> listar() {
         EntityManager em = JPAUtil.getEntityManager();
-
         try {
-            return em.createQuery(
-                            "SELECT e FROM Emprestimo e", Emprestimo.class)
+            return em.createQuery("SELECT e FROM Emprestimo e", Emprestimo.class)
                     .getResultList();
         } finally {
             em.close();
@@ -68,9 +60,8 @@ public class EmprestimoService {
     // ----------------------------------------------------------------------
     // BUSCAR POR ID
     // ----------------------------------------------------------------------
-    public Emprestimo buscarPorId(Long id) {
+    public Emprestimo buscarPorId(Integer id) {
         EntityManager em = JPAUtil.getEntityManager();
-
         try {
             return em.find(Emprestimo.class, id);
         } finally {
@@ -81,19 +72,16 @@ public class EmprestimoService {
     // ----------------------------------------------------------------------
     // REGISTRAR DEVOLUÇÃO
     // ----------------------------------------------------------------------
-    public void registrarDevolucao(Long id) {
+    public void registrarDevolucao(Integer id) {
         EntityManager em = JPAUtil.getEntityManager();
-
         try {
             em.getTransaction().begin();
-
             Emprestimo emp = em.find(Emprestimo.class, id);
             if (emp == null)
                 throw new RuntimeException("Empréstimo não encontrado.");
 
             emp.setDataDevolucao(new Date());
 
-            // Verifica atraso
             if (emp.getDataDevolucao().after(emp.getDataPrevistaDevolucao())) {
                 Multa multa = new Multa();
                 multa.setValor(10.0);
@@ -105,7 +93,6 @@ public class EmprestimoService {
             }
 
             em.getTransaction().commit();
-
         } finally {
             em.close();
         }
@@ -114,12 +101,10 @@ public class EmprestimoService {
     // ----------------------------------------------------------------------
     // RENOVAR EMPRÉSTIMO
     // ----------------------------------------------------------------------
-    public void renovar(Long id) {
+    public void renovar(Integer id) {
         EntityManager em = JPAUtil.getEntityManager();
-
         try {
             em.getTransaction().begin();
-
             Emprestimo emp = em.find(Emprestimo.class, id);
             if (emp == null)
                 throw new RuntimeException("Empréstimo não encontrado.");
@@ -135,7 +120,6 @@ public class EmprestimoService {
             emp.setRenovado(true);
 
             em.getTransaction().commit();
-
         } finally {
             em.close();
         }
@@ -144,47 +128,48 @@ public class EmprestimoService {
     // ----------------------------------------------------------------------
     // EXCLUIR EMPRÉSTIMO
     // ----------------------------------------------------------------------
-    public void excluir(Long id) {
+    public void excluir(Integer id) {
         EntityManager em = JPAUtil.getEntityManager();
-
         try {
             em.getTransaction().begin();
-
             Emprestimo emp = em.find(Emprestimo.class, id);
             if (emp != null)
                 em.remove(emp);
-
             em.getTransaction().commit();
-
         } finally {
             em.close();
         }
     }
 
-    public List<Emprestimo> listarPorUsuario(int usuarioId) {
+    // ----------------------------------------------------------------------
+    // LISTAR POR USUÁRIO
+    // ----------------------------------------------------------------------
+    public List<Emprestimo> listarPorUsuario(Integer usuarioId) {
         EntityManager em = JPAUtil.getEntityManager();
-
-        List<Emprestimo> lista = em.createQuery(
-                        "SELECT e FROM Emprestimo e WHERE e.usuario.id = :id",
-                        Emprestimo.class
-                )
-                .setParameter("id", usuarioId)
-                .getResultList();
-
-        em.close();
-        return lista;
+        try {
+            return em.createQuery(
+                            "SELECT e FROM Emprestimo e WHERE e.usuario.id = :id",
+                            Emprestimo.class
+                    )
+                    .setParameter("id", usuarioId)
+                    .getResultList();
+        } finally {
+            em.close();
+        }
     }
 
-    public void renovarDoUsuario(int emprestimoId, int usuarioId) {
+    // ----------------------------------------------------------------------
+    // RENOVAR EMPRÉSTIMO DO USUÁRIO
+    // ----------------------------------------------------------------------
+    public void renovarDoUsuario(Integer emprestimoId, Integer usuarioId) {
         EntityManager em = JPAUtil.getEntityManager();
         em.getTransaction().begin();
 
         Emprestimo emp = em.find(Emprestimo.class, emprestimoId);
-
         if (emp == null)
             throw new RuntimeException("Empréstimo não encontrado.");
 
-        if (emp.getUsuario().getId() != usuarioId)
+        if (!emp.getUsuario().getId().equals(usuarioId))
             throw new RuntimeException("Você não pode renovar empréstimos de outro usuário!");
 
         if (emp.isRenovado())
@@ -194,28 +179,28 @@ public class EmprestimoService {
         cal.setTime(emp.getDataPrevistaDevolucao());
         cal.add(Calendar.DAY_OF_MONTH, 7);
         emp.setDataPrevistaDevolucao(cal.getTime());
-
         emp.setRenovado(true);
 
         em.getTransaction().commit();
         em.close();
     }
 
-    public void devolverDoUsuario(int emprestimoId, int usuarioId) {
+    // ----------------------------------------------------------------------
+    // DEVOLVER EMPRÉSTIMO DO USUÁRIO
+    // ----------------------------------------------------------------------
+    public void devolverDoUsuario(Integer emprestimoId, Integer usuarioId) {
         EntityManager em = JPAUtil.getEntityManager();
         em.getTransaction().begin();
 
         Emprestimo emp = em.find(Emprestimo.class, emprestimoId);
-
         if (emp == null)
             throw new RuntimeException("Empréstimo não encontrado.");
 
-        if (emp.getUsuario().getId() != usuarioId)
+        if (!emp.getUsuario().getId().equals(usuarioId))
             throw new RuntimeException("Você não pode devolver empréstimos de outro usuário!");
 
         emp.setDataDevolucao(new Date());
 
-        // multa por atraso
         if (emp.getDataDevolucao().after(emp.getDataPrevistaDevolucao())) {
             Multa multa = new Multa();
             multa.setEmprestimo(emp);
@@ -228,5 +213,4 @@ public class EmprestimoService {
         em.getTransaction().commit();
         em.close();
     }
-
 }

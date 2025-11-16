@@ -23,10 +23,10 @@ public class EmprestimoController {
 
     public static void registrarEmprestimo() {
         try {
-            Long usuarioId = lerLong("ID do usuário: ");
+            Integer usuarioId = lerInteger("ID do usuário: ");
             String materiaisStr = lerTexto("IDs dos materiais (separados por vírgula): ");
 
-            List<Long> materiaisIds = parseIds(materiaisStr);
+            List<Integer> materiaisIds = parseIds(materiaisStr);
             if (materiaisIds.isEmpty()) {
                 println("\n✗ Nenhum ID válido informado.");
                 return;
@@ -60,7 +60,7 @@ public class EmprestimoController {
 
     public static void buscarEmprestimoPorId() {
         try {
-            Long id = lerLong("ID do empréstimo: ");
+            Integer id = lerInteger("ID do empréstimo: ");
             Emprestimo e = emprestimoService.buscarPorId(id);
 
             if (e == null) {
@@ -77,7 +77,7 @@ public class EmprestimoController {
 
     public static void devolverEmprestimo() {
         try {
-            Long id = lerLong("ID do empréstimo: ");
+            Integer id = lerInteger("ID do empréstimo: ");
             emprestimoService.registrarDevolucao(id);
             println("\n✓ Devolução registrada com sucesso!");
         } catch (Exception e) {
@@ -87,7 +87,7 @@ public class EmprestimoController {
 
     public static void renovarEmprestimo() {
         try {
-            Long id = lerLong("ID do empréstimo: ");
+            Integer id = lerInteger("ID do empréstimo: ");
             emprestimoService.renovar(id);
             println("\n✓ Empréstimo renovado com sucesso!");
         } catch (Exception e) {
@@ -97,7 +97,7 @@ public class EmprestimoController {
 
     public static void excluirEmprestimo() {
         try {
-            Long id = lerLong("ID do empréstimo: ");
+            Integer id = lerInteger("ID do empréstimo: ");
             emprestimoService.excluir(id);
             println("\n✓ Empréstimo excluído!");
         } catch (Exception e) {
@@ -111,7 +111,7 @@ public class EmprestimoController {
 
     public static void menuListarEmprestimosUsuario() {
         try {
-            int id = usuarioLogado.getId();
+            Integer id = usuarioLogado.getId();
             List<Emprestimo> lista = emprestimoService.listarPorUsuario(id);
 
             if (lista.isEmpty()) {
@@ -131,8 +131,8 @@ public class EmprestimoController {
 
     public static void menuRenovarEmprestimoUsuario() {
         try {
-            long id = lerLong("ID do empréstimo: ");
-            emprestimoService.renovarDoUsuario((int) id, usuarioLogado.getId());
+            Integer id = lerInteger("ID do empréstimo: ");
+            emprestimoService.renovarDoUsuario(id, usuarioLogado.getId());
             println("\n✓ Renovação realizada com sucesso!");
         } catch (Exception e) {
             erro("Erro ao renovar empréstimo", e);
@@ -141,8 +141,8 @@ public class EmprestimoController {
 
     public static void menuDevolverEmprestimoUsuario() {
         try {
-            long id = lerLong("ID do empréstimo: ");
-            emprestimoService.devolverDoUsuario(Math.toIntExact(id), usuarioLogado.getId());
+            Integer id = lerInteger("ID do empréstimo: ");
+            emprestimoService.devolverDoUsuario(id, usuarioLogado.getId());
             println("\n✓ Devolução concluída!");
         } catch (Exception e) {
             erro("Erro ao devolver empréstimo", e);
@@ -182,23 +182,23 @@ public class EmprestimoController {
         return scanner.nextLine().trim();
     }
 
-    private static Long lerLong(String msg) {
+    private static Integer lerInteger(String msg) {
         while (true) {
             try {
                 System.out.print(msg);
-                return Long.parseLong(scanner.nextLine().trim());
+                return Integer.parseInt(scanner.nextLine().trim());
             } catch (NumberFormatException e) {
                 println("✗ Digite apenas números.");
             }
         }
     }
 
-    private static List<Long> parseIds(String texto) {
+    private static List<Integer> parseIds(String texto) {
         if (texto == null || texto.isBlank())
             return List.of();
         return Arrays.stream(texto.split(","))
                 .map(String::trim)
-                .map(Long::parseLong)
+                .map(Integer::parseInt)
                 .collect(Collectors.toList());
     }
 

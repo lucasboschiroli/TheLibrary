@@ -7,7 +7,7 @@ public class Multa {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Integer id;
 
     private double valor;
     private boolean paga;
@@ -15,11 +15,11 @@ public class Multa {
     @OneToOne
     private Emprestimo emprestimo;
 
-    public Long getId() {
+    public Integer getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 

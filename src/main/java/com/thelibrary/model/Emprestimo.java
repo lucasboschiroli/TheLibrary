@@ -8,7 +8,7 @@ public class Emprestimo {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    private Integer id;
 
     @ManyToOne
     private Usuario usuario;
@@ -35,11 +35,11 @@ public class Emprestimo {
         item.setEmprestimo(this);
     }
 
-    public int getId() {
+    public Integer getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 
