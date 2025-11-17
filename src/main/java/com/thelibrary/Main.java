@@ -8,6 +8,8 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
+import java.util.Arrays;
+import java.util.stream.Collectors;
 import java.util.Scanner;
 
 /**
@@ -22,6 +24,8 @@ public class Main {
     private static final LivroService livroService = new LivroService();
     private static final ArtigoService artigoService = new ArtigoService();
     private static final RevistaService revistaService = new RevistaService();
+    private static final SugestaoService sugestaoService = new SugestaoService();
+    private static final AvaliacaoService avaliacaoService = new AvaliacaoService();
 
     // Utilitários
     private static final Scanner scanner = new Scanner(System.in);
@@ -523,20 +527,19 @@ public class Main {
     private static void menuAvaliacoes() {
         while (true) {
             println("\n--- AVALIAÇÕES ---");
-            println("1. Listar Avaliações");
-            println("2. Buscar Avaliação (ID)");
-            println("3. Excluir Avaliação");
+            println("1. Nova Avaliação");          // ← ADICIONADO AQUI
+            println("2. Listar Minhas Avaliações");
+            println("3. Editar Minha Avaliação");
+            println("4. Excluir Minha Avaliação");
             println("0. Voltar");
             print("Escolha uma opção: ");
 
             int op = lerInteiro();
             switch (op) {
-                case 1: println("Listar Avaliações: implementar AvaliacaoService"); break;
-                case 2: println("Buscar Avaliação: implementar AvaliacaoService"); break;
-                case 3:
-                    if (requireBibliotecario()) println("Excluir Avaliação: implementar AvaliacaoService");
-                    else println("\n✗ Ação reservada a bibliotecários.");
-                    break;
+                case 1: criarNovaAvaliacao(); break;      // ← MOVIDO PARA AQUI
+                case 2: listarMinhasAvaliacoes(); break;
+                case 3: editarMinhaAvaliacao(); break;
+                case 4: excluirMinhaAvaliacao(); break;
                 case 0: return;
                 default: println("\n✗ Opção inválida!");
             }
@@ -638,8 +641,8 @@ public class Main {
             int op = lerInteiro();
             switch (op) {
                 case 1: println("Gerenciar meus comentários: implementar ComentarioService"); break;
-                case 2: println("Gerenciar minhas avaliações: implementar AvaliacaoService"); break;
-                case 3: println("Gerenciar minhas sugestões: implementar SugestaoService"); break;
+                case 2: menuAvaliacoes(); break;
+                case 3: menuMinhasSugestoes(); break;
                 case 0: return;
                 default: println("\n✗ Opção inválida!");
             }
@@ -1167,5 +1170,531 @@ public class Main {
 
     private static void println(String s) {
         System.out.println(s);
+    }
+    private static void menuMinhasSugestoes() {
+        while (true) {
+            println("\n╔═══════════════════════════════════════╗");
+            println("║         MINHAS SUGESTÕES              ║");
+            println("╚═══════════════════════════════════════╝");
+            println("1. Criar Nova Sugestão");
+            println("2. Listar Minhas Sugestões");
+            println("3. Editar Justificativa");
+            println("4. Excluir Minha Sugestão");
+            println("0. Voltar");
+            print("Escolha uma opção: ");
+
+            int op = lerInteiro();
+            switch (op) {
+                case 1: criarNovaSugestao(); break;
+                case 2: listarMinhasSugestoes(); break;
+                case 3: editarJustificativaSugestao(); break;
+                case 4: excluirMinhaSugestao(); break;
+                case 0: return;
+                default: println("\n✗ Opção inválida!");
+            }
+        }
+    }
+
+    private static void criarNovaSugestao() {
+        try {
+            println("\n--- CRIAR NOVA SUGESTÃO ---");
+            println("Que tipo de material você deseja sugerir?");
+            println("1. Livro");
+            println("2. Artigo");
+            println("3. Revista");
+            print("Escolha: ");
+
+            int tipo = lerInteiro();
+
+            switch (tipo) {
+                case 1: sugerirLivro(); break;
+                case 2: sugerirArtigo(); break;
+                case 3: sugerirRevista(); break;
+                default: println("\n✗ Opção inválida!");
+            }
+
+        } catch (Exception e) {
+            println("\n✗ Erro: " + e.getMessage());
+        }
+    }
+    private static void sugerirLivro() {
+        try {
+            println("\n--- SUGERIR LIVRO ---");
+
+            String titulo = lerLinha("Título do livro: ");
+            String autor = lerLinha("Autor: ");
+            String editora = lerLinha("Editora: ");
+            Date dataPublicacao = lerDataOptional("Data de publicação (dd/MM/yyyy): ");
+
+            println("\nPor que você sugere adicionar este livro ao catálogo?");
+            String justificativa = lerLinha("Justificativa: ");
+
+            if (justificativa.trim().isEmpty()) {
+                println("\n✗ A justificativa não pode estar vazia!");
+                return;
+            }
+
+            Sugestao sugestao = sugestaoService.sugerirLivro(
+                    usuarioLogado.getId(),
+                    justificativa,
+                    titulo,
+                    autor,
+                    editora,
+                    dataPublicacao
+            );
+
+            println("\n✓ Sugestão criada com sucesso!");
+            println("  Título: " + sugestao.getTitulo());
+            println("  Autor: " + sugestao.getAutor());
+            println("  Editora: " + sugestao.getEditora());
+
+        } catch (ParseException e) {
+            println("\n✗ Erro: Data inválida. Use o formato dd/MM/yyyy");
+        } catch (Exception e) {
+            println("\n✗ Erro: " + e.getMessage());
+        }
+    }
+    private static void sugerirArtigo() {
+        try {
+            println("\n--- SUGERIR ARTIGO ---");
+
+            String titulo = lerLinha("Título do artigo: ");
+            String autor = lerLinha("Autor: ");
+            String revista = lerLinha("Revista: ");
+            String revisor = lerLinha("Revisor: ");
+            Date dataRevisao = lerDataOptional("Data de revisão (dd/MM/yyyy): ");
+
+            println("\nPor que você sugere adicionar este artigo ao catálogo?");
+            String justificativa = lerLinha("Justificativa: ");
+
+            if (justificativa.trim().isEmpty()) {
+                println("\n✗ A justificativa não pode estar vazia!");
+                return;
+            }
+
+            Sugestao sugestao = sugestaoService.sugerirArtigo(
+                    usuarioLogado.getId(),
+                    justificativa,
+                    titulo,
+                    autor,
+                    revista,
+                    revisor,
+                    dataRevisao
+            );
+
+            println("\n✓ Sugestão criada com sucesso!");
+            println("  Título: " + sugestao.getTitulo());
+            println("  Autor: " + sugestao.getAutor());
+            println("  Revista: " + sugestao.getRevista());
+
+
+        } catch (ParseException e) {
+            println("\n✗ Erro: Data inválida. Use o formato dd/MM/yyyy");
+        } catch (Exception e) {
+            println("\n✗ Erro: " + e.getMessage());
+        }
+    }
+
+    private static void sugerirRevista() {
+        try {
+            println("\n--- SUGERIR REVISTA ---");
+
+            String titulo = lerLinha("Título: ");
+            String autor = lerLinha("Autor: ");
+            String nomeRevista = lerLinha("Nome da revista: ");
+            String numeroEdicao = lerLinha("Número da edição: ");
+            Date dataEdicao = lerDataOptional("Data da edição (dd/MM/yyyy): ");
+
+            println("\nPor que você sugere adicionar esta revista ao catálogo?");
+            String justificativa = lerLinha("Justificativa: ");
+
+            if (justificativa.trim().isEmpty()) {
+                println("\n✗ A justificativa não pode estar vazia!");
+                return;
+            }
+
+            Sugestao sugestao = sugestaoService.sugerirRevista(
+                    usuarioLogado.getId(),
+                    justificativa,
+                    titulo,
+                    autor,
+                    nomeRevista,
+                    numeroEdicao,
+                    dataEdicao
+            );
+
+            println("\n✓ Sugestão criada com sucesso!");
+            println("  Título: " + sugestao.getTitulo());
+            println("  Autor: " + sugestao.getAutor());
+            println("  Nome da revista: " + sugestao.getNomeRevista());
+
+        } catch (ParseException e) {
+            println("\n✗ Erro: Data inválida. Use o formato dd/MM/yyyy");
+        } catch (Exception e) {
+            println("\n✗ Erro: " + e.getMessage());
+        }
+    }
+
+    private static void listarMinhasSugestoes() {
+        try {
+            println("\n--- MINHAS SUGESTÕES ---");
+            List<Sugestao> sugestoes = sugestaoService.listarPorUsuario(usuarioLogado.getId());
+
+            if (sugestoes.isEmpty()) {
+                println("Você ainda não fez nenhuma sugestão.");
+            } else {
+                for (Sugestao s : sugestoes) {
+                    println("─────────────────────────────────");
+                    println("ID: " + s.getId());
+                    println("Tipo: " + s.getTipoMaterial());
+                    println("Título: " + s.getTitulo());
+                    println("Autor: " + s.getAutor());
+
+                    // Campos específicos por tipo
+                    if ("Livro".equals(s.getTipoMaterial())) {
+                        println("Editora: " + s.getEditora());
+                        if (s.getDataPublicacao() != null) {
+                            println("Data de publicação: " + dateFormat.format(s.getDataPublicacao()));
+                        }
+                    } else if ("Artigo".equals(s.getTipoMaterial())) {
+                        println("Revista: " + s.getRevista());
+                        println("Revisor: " + s.getRevisor());
+                        if (s.getDataRevisao() != null) {
+                            println("Data de revisão: " + dateFormat.format(s.getDataRevisao()));
+                        }
+                    } else if ("Revista".equals(s.getTipoMaterial())) {
+                        println("Nome da revista: " + s.getNomeRevista());
+                        println("Número da edição: " + s.getNumeroEdicao());
+                        if (s.getDataEdicao() != null) {
+                            println("Data da edição: " + dateFormat.format(s.getDataEdicao()));
+                        }
+                    }
+
+                    println("Justificativa: " + s.getJustificativa());
+                    println("Data da sugestão: " + dateFormat.format(s.getDataSugestao()));
+                }
+                println("─────────────────────────────────");
+            }
+        } catch (Exception e) {
+            println("\n✗ Erro: " + e.getMessage());
+        }
+    }
+
+    private static void editarJustificativaSugestao() {
+        try {
+            println("\n--- EDITAR JUSTIFICATIVA ---");
+
+            // Primeiro listar as sugestões do usuário
+            List<Sugestao> sugestoes = sugestaoService.listarPorUsuario(usuarioLogado.getId());
+
+            if (sugestoes.isEmpty()) {
+                println("Você não tem sugestões para editar.");
+                return;
+            }
+
+            println("\nSuas sugestões:");
+            for (Sugestao s : sugestoes) {
+                println(s.getId() + " - " + s.getTitulo() + " (" + s.getTipoMaterial() + ")");
+            }
+
+            int id = lerInteiroPrompt("\nID da sugestão: ");
+
+            Sugestao sugestao = sugestaoService.buscarPorId(id);
+
+            println("\nJustificativa atual:");
+            println(sugestao.getJustificativa());
+
+            String novaJustificativa = lerLinha("\nNova justificativa: ");
+
+            if (novaJustificativa.trim().isEmpty()) {
+                println("\n✗ A justificativa não pode estar vazia!");
+                return;
+            }
+
+            sugestaoService.atualizarJustificativa(id, usuarioLogado.getId(), novaJustificativa);
+
+            println("\n✓ Justificativa atualizada com sucesso!");
+
+        } catch (Exception e) {
+            println("\n✗ Erro: " + e.getMessage());
+        }
+    }
+
+    private static void excluirMinhaSugestao() {
+        try {
+            println("\n--- EXCLUIR MINHA SUGESTÃO ---");
+
+            // Primeiro listar as sugestões do usuário
+            List<Sugestao> sugestoes = sugestaoService.listarPorUsuario(usuarioLogado.getId());
+
+            if (sugestoes.isEmpty()) {
+                println("Você não tem sugestões para excluir.");
+                return;
+            }
+
+            println("\nSuas sugestões:");
+            for (Sugestao s : sugestoes) {
+                println(s.getId() + " - " + s.getTitulo() + " (" + s.getTipoMaterial() + ")");
+            }
+
+            int id = lerInteiroPrompt("\nID da sugestão: ");
+
+            print("Tem certeza que deseja excluir? (S/N): ");
+            String confirmacao = scanner.nextLine().trim().toUpperCase();
+
+            if (confirmacao.equals("S")) {
+                sugestaoService.excluirSugestaoDoUsuario(id, usuarioLogado.getId());
+                println("\n✓ Sugestão excluída com sucesso!");
+            } else {
+                println("\n✗ Operação cancelada.");
+            }
+
+        } catch (Exception e) {
+            println("\n✗ Erro: " + e.getMessage());
+        }
+    }
+    private static void listarTodasAvaliacoes() {
+        try {
+            println("\n--- TODAS AS AVALIAÇÕES ---");
+            List<Avaliacao> avaliacoes = avaliacaoService.listarTodas();
+            if (avaliacoes.isEmpty()) {
+                println("Nenhuma avaliação encontrada.");
+            } else {
+                for (Avaliacao a : avaliacoes) {
+                    println("ID: " + a.getId() +
+                            " | Usuário: " + a.getUsuario().getNome() +
+                            " | Material: " + a.getMaterial().getTitulo() +
+                            " | Nota: " + a.getNota() + "/5" +
+                            " | Data: " + dateFormat.format(a.getDataAvaliacao()));
+                    println("─────────────────────────────────");
+                }
+            }
+        } catch (Exception e) {
+            println("\n✗ Erro: " + e.getMessage());
+        }
+    }
+    private static void editarMinhaAvaliacao() {
+        if (!requireUsuarioLogado()) return;
+
+        try {
+            println("\n--- EDITAR MINHA AVALIAÇÃO ---");
+
+            List<Avaliacao> minhasAvaliacoes = avaliacaoService.listarPorUsuario(usuarioLogado.getId());
+
+            if (minhasAvaliacoes.isEmpty()) {
+                println("Você não tem avaliações para editar.");
+                return;
+            }
+
+            println("\nSuas avaliações:");
+            for (Avaliacao a : minhasAvaliacoes) {
+                println("ID: " + a.getId() +
+                        " | " + a.getMaterial().getTitulo() +
+                        " | Nota: " + a.getNota() + "/5");
+            }
+
+            int avaliacaoId = lerInteiroPrompt("\nID da avaliação para editar: ");
+
+            Avaliacao avaliacao = avaliacaoService.buscarPorId(avaliacaoId);
+
+            if (!avaliacao.getUsuario().getId().equals(usuarioLogado.getId())) {
+                println("\n✗ Você só pode editar suas próprias avaliações!");
+                return;
+            }
+
+            // Exibir avaliação atual
+            println("\n--- AVALIAÇÃO ATUAL ---");
+            println("Material: " + avaliacao.getMaterial().getTitulo());
+            println("Nota atual: " + avaliacao.getNota() + "/5");
+
+            // Nova nota
+            println("\n⭐ Nova avaliação (1-5):");
+            int novaNota = lerInteiroPrompt("Sua nova nota (1-5): ");
+
+            // ATUALIZAR APENAS A NOTA
+            Avaliacao avaliacaoAtualizada = avaliacaoService.atualizarAvaliacao(
+                    avaliacaoId, usuarioLogado.getId(), novaNota
+            );
+
+            println("\n✅ Avaliação atualizada com sucesso!");
+            println("Nova nota: " + avaliacaoAtualizada.getNota() + "/5");
+
+        } catch (Exception e) {
+            println("\n✗ Erro: " + e.getMessage());
+        }
+    }
+
+    private static void buscarAvaliacaoPorId() {
+        try {
+            println("\n--- BUSCAR AVALIAÇÃO ---");
+            int id = lerInteiroPrompt("ID da avaliação: ");
+            Avaliacao avaliacao = avaliacaoService.buscarPorId(id);
+
+            println("\n✓ Avaliação encontrada:");
+            println("ID: " + avaliacao.getId());
+            println("Usuário: " + avaliacao.getUsuario().getNome());
+            println("Material: " + avaliacao.getMaterial().getTitulo() + " (" + avaliacao.getMaterial().obterTipo() + ")");
+            println("Nota: " + avaliacao.getNota() + "/5");
+            println("Data: " + dateFormat.format(avaliacao.getDataAvaliacao()));
+        } catch (Exception e) {
+            println("\n✗ Erro: " + e.getMessage());
+        }
+    }
+    private static void listarAvaliacoesPorMaterial() {
+        try {
+            println("\n--- AVALIAÇÕES POR MATERIAL ---");
+            int materialId = lerInteiroPrompt("ID do material: ");
+
+            List<Avaliacao> avaliacoes = avaliacaoService.listarPorMaterial(materialId);
+            Double media = avaliacaoService.obterMediaNotasMaterial(materialId);
+            Long total = avaliacaoService.obterNumeroAvaliacoesMaterial(materialId);
+
+            println("\n📊 Estatísticas do Material:");
+            println("Média de notas: " + media + "/5");
+            println("Total de avaliações: " + total);
+
+            if (avaliacoes.isEmpty()) {
+                println("\nNenhuma avaliação encontrada para este material.");
+            } else {
+                println("\n--- AVALIAÇÕES ---");
+                for (Avaliacao a : avaliacoes) {
+                    println("👤 " + a.getUsuario().getNome() +
+                            " | ⭐ " + a.getNota() + "/5" +
+                            " | 📅 " + dateFormat.format(a.getDataAvaliacao()));
+                    println("   ID Avaliação: " + a.getId());
+                    println("─────────────────────────────────");
+                }
+            }
+        } catch (Exception e) {
+            println("\n✗ Erro: " + e.getMessage());
+        }
+    }
+
+    private static void listarMinhasAvaliacoes() {
+        if (!requireUsuarioLogado()) return;
+
+        try {
+            println("\n--- MINHAS AVALIAÇÕES ---");
+            List<Avaliacao> avaliacoes = avaliacaoService.listarPorUsuario(usuarioLogado.getId());
+
+            if (avaliacoes.isEmpty()) {
+                println("Você ainda não fez nenhuma avaliação.");
+            } else {
+                for (Avaliacao a : avaliacoes) {
+                    println("📚 " + a.getMaterial().getTitulo() + " (" + a.getMaterial().obterTipo() + ")" +
+                            " | ⭐ " + a.getNota() + "/5" +
+                            " | 📅 " + dateFormat.format(a.getDataAvaliacao()));
+                    println("   ID Avaliação: " + a.getId());
+                    println("─────────────────────────────────");
+                }
+            }
+        } catch (Exception e) {
+            println("\n✗ Erro: " + e.getMessage());
+        }
+    }
+
+    private static void criarNovaAvaliacao() {
+        if (!requireUsuarioLogado()) return;
+
+        try {
+            println("\n--- NOVA AVALIAÇÃO ---");
+
+            // Listar materiais disponíveis
+            println("\n📚 Materiais Disponíveis:");
+
+            // Listar Livros
+            println("\n--- LIVROS ---");
+            List<Livro> livros = livroService.listarTodos();
+            for (Livro livro : livros) {
+                println("ID: " + livro.getId() + " | " + livro.getTitulo());
+            }
+
+            // Listar Artigos
+            println("\n--- ARTIGOS ---");
+            List<Artigo> artigos = artigoService.listarTodos();
+            for (Artigo artigo : artigos) {
+                println("ID: " + artigo.getId() + " | " + artigo.getTitulo());
+            }
+
+            // Listar Revistas
+            println("\n--- REVISTAS ---");
+            List<Revista> revistas = revistaService.listarTodas();
+            for (Revista revista : revistas) {
+                println("ID: " + revista.getId() + " | " + revista.getTitulo());
+            }
+
+            if (livros.isEmpty() && artigos.isEmpty() && revistas.isEmpty()) {
+                println("Nenhum material disponível para avaliação.");
+                return;
+            }
+
+            int materialId = lerInteiroPrompt("\nID do material: ");
+
+            // Verificar se já avaliou
+            if (avaliacaoService.usuarioJaAvaliouMaterial(usuarioLogado.getId(), materialId)) {
+                println("\n✗ Você já avaliou este material!");
+                return;
+            }
+
+            println("\n⭐ Avalie de 1 a 5 estrelas:");
+            int nota = lerInteiroPrompt("Sua nota (1-5): ");
+
+            // CRIAR AVALIAÇÃO APENAS COM NOTA
+            Avaliacao avaliacao = avaliacaoService.criarAvaliacao(
+                    usuarioLogado.getId(), materialId, nota
+            );
+
+            println("\n✅ Avaliação criada com sucesso!");
+            println("Material: " + avaliacao.getMaterial().getTitulo());
+            println("Sua nota: " + avaliacao.getNota() + "/5");
+
+        } catch (Exception e) {
+            println("\n✗ Erro: " + e.getMessage());
+        }
+    }
+
+    private static void excluirMinhaAvaliacao() {
+        if (!requireUsuarioLogado()) return;
+
+        try {
+            println("\n--- EXCLUIR MINHA AVALIAÇÃO ---");
+
+            // Listar apenas as avaliações do usuário logado
+            List<Avaliacao> minhasAvaliacoes = avaliacaoService.listarPorUsuario(usuarioLogado.getId());
+
+            if (minhasAvaliacoes.isEmpty()) {
+                println("Você não tem avaliações para excluir.");
+                return;
+            }
+
+            println("\nSuas avaliações:");
+            for (Avaliacao a : minhasAvaliacoes) {
+                println("ID: " + a.getId() +
+                        " | " + a.getMaterial().getTitulo() +
+                        " | Nota: " + a.getNota() + "/5");
+            }
+
+            int avaliacaoId = lerInteiroPrompt("\nID da avaliação para excluir: ");
+
+            // Verificar se a avaliação pertence ao usuário
+            Avaliacao avaliacao = avaliacaoService.buscarPorId(avaliacaoId);
+            if (!avaliacao.getUsuario().getId().equals(usuarioLogado.getId())) {
+                println("\n✗ Você só pode excluir suas próprias avaliações!");
+                return;
+            }
+
+            print("⚠️  Tem certeza que deseja excluir? (S/N): ");
+            String confirmacao = scanner.nextLine().trim().toUpperCase();
+
+            if (confirmacao.equals("S")) {
+                avaliacaoService.excluirAvaliacaoDoUsuario(avaliacaoId, usuarioLogado.getId());
+                println("\n✅ Avaliação excluída com sucesso!");
+            } else {
+                println("\n✗ Operação cancelada.");
+            }
+
+        } catch (Exception e) {
+            println("\n✗ Erro: " + e.getMessage());
+        }
     }
 }

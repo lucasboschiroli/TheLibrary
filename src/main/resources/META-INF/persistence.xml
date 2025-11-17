@@ -23,7 +23,8 @@
         <class>com.thelibrary.model.Emprestimo</class>
         <class>com.thelibrary.model.ItemEmprestimo</class>
         <class>com.thelibrary.model.Multa</class>
-
+        <class>com.thelibrary.model.Sugestao</class>
+        <class>com.thelibrary.model.Avaliacao</class>
         <properties>
             <!-- Database Connection -->
             <property name="javax.persistence.jdbc.driver" value="com.mysql.cj.jdbc.Driver"/>
