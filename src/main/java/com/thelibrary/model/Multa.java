@@ -1,6 +1,7 @@
 package com.thelibrary.model;
 
 import javax.persistence.*;
+import java.util.Date;
 
 @Entity
 public class Multa {
@@ -11,8 +12,13 @@ public class Multa {
 
     private double valor;
     private boolean paga;
+    private String justificativa;
+
+    @Temporal(TemporalType.DATE)
+    private Date data_emissao;
 
     @OneToOne
+    @JoinColumn(name = "emprestimo_id", unique = true, nullable = false)
     private Emprestimo emprestimo;
 
     public Integer getId() {
@@ -45,5 +51,24 @@ public class Multa {
 
     public void setEmprestimo(Emprestimo emprestimo) {
         this.emprestimo = emprestimo;
+    }
+
+    public String getJustificativa(){return justificativa;}
+
+    public void setJustificativa(String justificativa) {
+        this.justificativa = justificativa;
+    }
+
+    public Date getData_emissao() {
+        return data_emissao;
+    }
+
+    public void setData_emissao(Date data_emissao) {
+        this.data_emissao = data_emissao;
+    }
+
+    @Override
+    public String toString() {
+        return "Multa{id=" + id + ", valor='" + valor + "', justificativa='" + justificativa + "', situação='" + paga + "', data de emissão='" + data_emissao + "',id do emprestimo='" + emprestimo.getId() +"'}";
     }
 }

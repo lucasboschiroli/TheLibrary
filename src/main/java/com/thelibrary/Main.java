@@ -26,6 +26,9 @@ public class Main {
     private static final RevistaService revistaService = new RevistaService();
     private static final SugestaoService sugestaoService = new SugestaoService();
     private static final AvaliacaoService avaliacaoService = new AvaliacaoService();
+    private static final ComentarioService comentarioService = new ComentarioService();
+    private static final MultaService multaService = new MultaService();
+    private static final MaterialBibliograficoService materialBibliograficoService = new MaterialBibliograficoService();
 
     // Utilitários
     private static final Scanner scanner = new Scanner(System.in);
@@ -465,11 +468,11 @@ public class Main {
 
             int op = lerInteiro();
             switch (op) {
-                case 1: println("Listar Multas: implementar MultaService"); break;
-                case 2: println("Buscar Multa: implementar MultaService"); break;
-                case 3: println("Associar Multa: implementar MultaService"); break;
-                case 4: println("Quitar Multa: implementar MultaService"); break;
-                case 5: println("Excluir Multa: implementar MultaService"); break;
+                case 1: listarTodasAsMultas(); break;
+                case 2: buscarMultaPorId(); break;
+                case 3: menuMultar(); break;
+                case 4: menuQuitarMulta(); break;
+                case 5: menuExcluirMulta(); break;
                 case 0: return;
                 default: println("\n✗ Opção inválida!");
             }
@@ -511,10 +514,10 @@ public class Main {
 
             int op = lerInteiro();
             switch (op) {
-                case 1: println("Listar Comentários: implementar ComentarioService"); break;
-                case 2: println("Buscar Comentário: implementar ComentarioService"); break;
+                case 1: visualizarComentariosLivro(); break;
+                case 2: buscarComentarioId(); break;
                 case 3:
-                    if (requireBibliotecario()) println("Excluir Comentário: implementar ComentarioService");
+                    if (requireBibliotecario()) removerComentarioId();
                     else println("\n✗ Ação reservada a bibliotecários.");
                     break;
                 case 0: return;
@@ -640,7 +643,7 @@ public class Main {
 
             int op = lerInteiro();
             switch (op) {
-                case 1: println("Gerenciar meus comentários: implementar ComentarioService"); break;
+                case 1: menuComentariosUsuario(); break;
                 case 2: menuAvaliacoes(); break;
                 case 3: menuMinhasSugestoes(); break;
                 case 0: return;
@@ -1695,6 +1698,193 @@ public class Main {
 
         } catch (Exception e) {
             println("\n✗ Erro: " + e.getMessage());
+        }
+    }
+
+    private static void menuMultar() {
+        try {
+            com.thelibrary.controller.EmprestimoController.listarEmprestimos();
+            println("\nEscreva o id do emprestimo para multar: ");
+            int emprestimoId = lerInteiro();
+            println("\nValor da multa: ");
+            double valor = scanner.nextDouble();
+            scanner.nextLine();
+            String justificativa = lerLinha("Justificativa: ");
+            multaService.registrarMulta(emprestimoId, valor, justificativa);
+            println("\n Multa enviada com sucesso.");
+        } catch (Exception e){
+            println("\n Erro: " + e.getMessage());
+        }
+    }
+
+    private static void listarTodasAsMultas(){
+        List<Multa> multas = multaService.listarTodos();
+        if (multas.isEmpty()) {
+            println("Nenhuma multa encontrada");
+            return;
+        }
+        for (Multa multa : multas) {
+            println("ID: " + multa.getId() + " | valor: " + multa.getValor() + " | justificativa: " + multa.getJustificativa() + " | data de emissão: " + multa.getData_emissao() + " | id do emprestimo: " + (multa.getEmprestimo()).getId());
+        }
+    }
+
+    private static void menuQuitarMulta() {
+        try{
+            println("\n Selecione a multa para quitar: ");
+            multaService.listarTodos();
+            int id = lerInteiroPrompt("Id da multa: ");
+            multaService.quitarMulta(id);
+            println("Multa quitada com sucesso.");
+
+        }catch (Exception e){
+            println("\n Erro: " + e.getMessage());
+        }
+    }
+
+    private static void menuExcluirMulta(){
+        try{
+            println("\n Selecione a multa para excluir: ");
+            multaService.listarTodos();
+            int id = lerInteiroPrompt("Id da multa: ");
+            multaService.removerMulta(id);
+            println("Multa removida com sucesso.");
+
+        }catch (Exception e){
+            println("\n Erro: " + e.getMessage());
+        }
+    }
+
+    private static void buscarMultaPorId() {
+        println("\n --buscar multa por id--");
+        int id = lerInteiroPrompt("Insira um id: ");
+        Multa multa = multaService.buscarPorId(id);
+        if (multa == null) {
+            println("Nenhuma multa encontrada");
+            return;
+        }
+        println("ID: " + multa.getId() + " | valor: " + multa.getValor() + " | justificativa: " + multa.getJustificativa() + " | data de emissão: " + multa.getData_emissao() + " | id do emprestimo: " + (multa.getEmprestimo()).getId());
+    }
+
+    private static void menuComentariosUsuario() {
+        while (true) {
+            println("\n--- MENU DE COMENTÁRIOS ---");
+            println("1. Enviar comentário de livro");
+            println("2. Visualizar meus comentários");
+            println("3. Visualizar comentários de um livro");
+            println("4. Editar comentário");
+            println("0. Voltar");
+            print("Escolha uma opção: ");
+
+            int op = lerInteiro();
+            switch (op) {
+                case 1:
+                    enviarComentario();
+                    break;
+                case 2:
+                    visualizarComentariosUsuario();
+                    break;
+                case 3:
+                    visualizarComentariosLivro();
+                    break;
+                case 4:
+                    editarComentario();
+                    break;
+                case 0:
+                    return;
+                default:
+                    println("\n✗ Opção inválida!");
+            }
+        }
+    }
+    private static void enviarComentario() {
+        try {
+            List<MaterialBibliografico> materiaisBibliograficos = materialBibliograficoService.listarTodos();
+            for (MaterialBibliografico materialBibliografico : materiaisBibliograficos) {
+                println("ID: " + materialBibliografico.getId() + " | " + materialBibliografico.getTitulo());
+            }
+
+            println("\nEscreva o id do Material Bibliográfico para enviar o comentário: ");
+            int materialId = lerInteiro();
+            println("\nComentário: ");
+            String comentario = lerLinha("Insira o comentário: ");
+            comentarioService.enviarComentario(materialId, comentario, usuarioLogado);
+            println("\n Comentário enviado com sucesso.");
+        } catch (Exception e){
+            println("\n Erro: " + e.getMessage());
+        }
+
+    }
+
+    private static void visualizarComentariosUsuario() {
+        List<Comentario> comentarios = comentarioService.buscarComentariosUsuario(usuarioLogado);
+        if (comentarios.isEmpty()) {
+            println("Nenhum comentário seu encontrado");
+            return;
+        }
+        println("\n Seus comentários");
+        for (Comentario comentario : comentarios) {
+            println("Material bibliográfico: " + (comentario.getMaterialBibliografico()).getTitulo() + " | Comentário: " + comentario.getComentario());
+        }
+    }
+
+    private static void visualizarComentariosLivro() {
+        List<MaterialBibliografico> materiaisBibliograficos = materialBibliograficoService.listarTodos();
+        for (MaterialBibliografico materialBibliografico : materiaisBibliograficos) {
+            println("ID: " + materialBibliografico.getId() + " | " + materialBibliografico.getTitulo());
+        }
+        int idLivro = lerInteiroPrompt("Escreva o id de um livro: ");
+        List<Comentario> comentarios = comentarioService.buscarComentariosLivro(idLivro);
+        if (comentarios.isEmpty()) {
+            println("Nenhum comentário do livro encontrado");
+            return;
+        }
+        println("\n Comentários do livro: " );
+        for (Comentario comentario : comentarios) {
+            println("ID: " + comentario.getId() + " | Material bibliográfico: " + (comentario.getMaterialBibliografico()).getTitulo() + " | Comentário: " + comentario.getComentario() + " | Usuário: " + (comentario.getUsuario()).getNome());
+        }
+    }
+
+    private static void editarComentario() {
+        try {
+            List<Comentario> comentarios = comentarioService.buscarComentariosUsuario(usuarioLogado);
+            if (comentarios.isEmpty()) {
+                println("Nenhum comentário seu encontrado");
+                return;
+            }
+            println("\n Seus comentários");
+            for (Comentario comentario : comentarios) {
+                println("ID: " + comentario.getId() + " | Material bibliográfico: " + (comentario.getMaterialBibliografico()).getTitulo() + " | Comentário: " + comentario.getComentario());
+            }
+            int idComentario = lerInteiroPrompt("\nInsira o id do comentario para editar a mensagem: ");
+            String comentario = lerLinha("Insira o novo comentário: ");
+            comentarioService.editarComentario(idComentario, comentario);
+            println("Comentário alterado com sucesso!");
+        }catch (Exception e){
+            println("\n Erro: " + e.getMessage());
+        }
+    }
+
+    private static void buscarComentarioId() {
+        println("\n --buscar Comentário por id--");
+        int id = lerInteiroPrompt("Insira um id: ");
+        Comentario comentario = comentarioService.buscarComentarioId(id);
+        if (comentario == null) {
+            println("Nenhum comentário encontrado");
+            return;
+        }
+        println("ID: " + comentario.getId() + " | Material bibliográfico: " + (comentario.getMaterialBibliografico()).getTitulo() + " | Comentário: " + comentario.getComentario());
+    }
+
+    private static void removerComentarioId() {
+        try{
+            println("\n Selecione um comentário para excluir: ");
+            visualizarComentariosLivro();
+            int id = lerInteiroPrompt("Id do comentário para excluir: ");
+            comentarioService.removerComentario(id);
+            println("Comentário removido com sucesso.");
+
+        }catch (Exception e){
+            println("\n Erro: " + e.getMessage());
         }
     }
 }

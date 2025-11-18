@@ -25,6 +25,7 @@
         <class>com.thelibrary.model.Multa</class>
         <class>com.thelibrary.model.Sugestao</class>
         <class>com.thelibrary.model.Avaliacao</class>
+        <class>com.thelibrary.model.Comentario</class>
         <properties>
             <!-- Database Connection -->
             <property name="javax.persistence.jdbc.driver" value="com.mysql.cj.jdbc.Driver"/>
@@ -36,7 +37,7 @@
             <!-- EclipseLink -->
             <property name="eclipselink.target-database" value="MySQL"/>
             <property name="eclipselink.ddl-generation" value="create-or-extend-tables"/>
-            <property name="eclipselink.logging.level" value="FINE"/>
+            <property name="eclipselink.logging.level" value="OFF"/>
             <property name="eclipselink.logging.parameters" value="true"/>
         </properties>
     </persistence-unit>
